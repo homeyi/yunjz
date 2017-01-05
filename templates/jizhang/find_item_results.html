@@ -1,0 +1,101 @@
+
+{% extends "base_yunjz.html" %}
+{%block title%}查找结果{%endblock%}
+{%block extra_header%}
+
+    <script type="text/javascript">
+
+    $(function(){
+
+        $("#all").click(function () {
+            var checked_status = this.checked;
+            $("input[name=del_id]").each(function () {
+                this.checked = checked_status;
+            });
+        });
+
+        //这是一个非常简单的demo实例，让列表元素分页显示
+        //回调函数的作用是显示对应分页的列表项内容
+        //回调函数在用户每次点击分页链接的时候执行
+        //参数page_index{int整型}表示当前的索引页
+        var initPagination = function() {
+            var num_entries = $("#hiddenresult div.result").length;
+            // 创建分页
+            $("#Pagination").pagination(num_entries, {
+                num_edge_entries: 1, //边缘页数
+                num_display_entries: 4, //主体页数
+                callback: pageselectCallback,
+                prev_text: "前一页",
+                next_text: "下一页",
+                items_per_page:1 //每页显示1项
+            });
+         }();
+         
+        function pageselectCallback(page_index, jq){
+            var new_content = $("#hiddenresult div.result:eq("+page_index+")").clone();
+            $("#Searchresult").empty().append(new_content); //装载对应分页的内容
+            return false;
+        };
+    });
+    </script>
+{% endblock%}
+        
+{% block content %}
+
+    {% include "welcome.html" %}
+
+    <div class="btn-group btn-group-justified" role="group">
+        <a href="{% url 'jizhang:new_item' %}"           class="btn btn-primary" role="button"><span class="glyphicon glyphicon-plus"></span> 新建</a>
+        <a href="#" class="btn btn-primary" role="button"><span class="glyphicon glyphicon-floppy-save"></span> 导出</a>
+        <a href="#"    class="btn btn-primary" role="button"><span class="glyphicon glyphicon-floppy-open"></span> 导入</a>
+        <!-- Button trigger modal -->
+        <a data-toggle="modal" data-target="#myModal"  class="btn btn-danger"  role="button"><span class="glyphicon glyphicon-trash"></span> 删除</a>           
+
+    </div>
+
+    <form method="post" action="" name="itemsForm">
+    {% csrf_token %}
+
+    <div id="Searchresult">正在加载。。。</div>  
+    <div id="Pagination" class="pagination"><!-- 这里显示分页 --></div>        
+    <div id="hiddenresult" style="display:none;">
+        {%for items in item_pages%}
+            {{items}}
+            <div class="result">
+                <table class="table table-striped">
+                    {% if items %}
+                        <tr class="info"><td data-toggle="tooltip" data-placement="left" title="按时间排序"><strong><a href="{%url 'jizhang:items'%}">时间</a></strong></td>
+                            <td data-toggle="tooltip" data-placement="left" title="按价格排序">价格(元)</td>
+                            <td><strong>分类</strong></td>
+                            <td><strong>备注</strong></td>
+                            <td><strong><input type="checkbox" id="all" />全选</strong></td>
+                        </tr>
+
+                    
+                        {% for item in items %}
+                        <tr class="{% cycle ,active %}">
+                            <td data-toggle="tooltip" data-placement="left" title="编辑该帐单"><a href="{{item.get_absolute_url}}">{{ item.pub_date|date:"Y-m-d"}}</a></td>
+                            <td data-toggle="tooltip" data-placement="left" title="编辑该帐单"><a href="{{item.get_absolute_url}}">{{ item.get_price}}</a></td>
+                            <td data-toggle="tooltip" data-placement="left" title="显示该分类下帐单"><a href="{{item.category.get_items_url}}"> {{ item.category}}</a> </td>
+                            <td> {{ item.comment}} </td>
+                            <td><input type='checkbox' name="del_id" value="{{item.id}}"></td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <p>没有可用的帐单</p>
+                    {% endif %}
+
+                </table>
+            </div>
+        {%endfor%}
+    </div>
+
+    {%include "jizhang/delete_modal.html"%}
+    </form>
+
+    {% include "jizhang/footer_button.html" %}
+
+{%endblock%}
+
+
+

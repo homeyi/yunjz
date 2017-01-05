@@ -1,0 +1,58 @@
+{% extends "base_yunjz.html" %}
+{%block title%}分类列表{%endblock%}
+
+{%block extra_header%}
+<script>
+    $(function () {
+        $("#all").click(function () {
+            var checked_status = this.checked;
+            $("input[name=del_id]").each(function () {
+                this.checked = checked_status;
+            });
+        });
+    });
+</script>
+{% endblock%}
+        
+{% block content %}
+
+{% include "welcome.html" %}
+
+    <div class="btn-group btn-group-justified" role="group">
+        <a href="{% url 'jizhang:new_category' %}"  class="btn btn-primary" role="button"><span class="glyphicon glyphicon-plus"></span> 新建</a>
+        <a href="#" class="btn btn-primary" role="button"><span class="glyphicon glyphicon-floppy-save"></span> 导出</a>
+        <a href="#" class="btn btn-primary" role="button"><span class="glyphicon glyphicon-floppy-open"></span> 导入</a>
+        <a data-toggle="modal" data-target="#myModal"  class="btn btn-danger" role="button"><span class="glyphicon glyphicon-trash"></span> 删除</a>
+    </div>
+
+    <form method="post" action="" name="itemsForm">
+        {% csrf_token %}
+
+        <table class="table table-striped">
+            {% if categories %}
+                <tr class="info"><td><strong>分类名称</strong></td>
+                    <td><strong>父类名称</strong></td>
+                    <td><strong>收入/支出</strong></td>
+                    <td><strong><input type="checkbox" id="all" />全选</strong></td>
+                </tr>
+
+                {% for obj in categories %}
+                    <tr class="{% cycle ,active %}">
+                        <td data-toggle="tooltip" data-placement="left" title="编辑该分类"><a href="{% url 'jizhang:edit_category' obj.id %}" >{{obj.level}}{{ obj.name}}</a></td>
+                        <td>{{ obj.p_category}}</td>
+                        <td> {{ obj.get_isIncome_display}} </td>
+                        <td><input type='checkbox' name="del_id" value="{{obj.id}}"></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <p>没有可用的分类</p>
+            {% endif %}
+
+        </table>
+
+        {%include "jizhang/delete_modal.html"%}
+    </form>
+
+    {% include "jizhang/footer_button.html" %}
+
+{%endblock%}
